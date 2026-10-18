@@ -1,16 +1,15 @@
 
-
-
-
-
-
 # StockYard
 
 One sentence: what it is and who it's for.
 Built for the NT Tech Innovation Full Stack Developer assessment (October 2026).
 
 **Live demo:** <link>
-**Demo logins:** Admin: <email> / <password> · Manager: <email> / <password>
+
+**Demo logins:**
+
+Admin    admin@stockyard.demo    Admin@1234
+Manager    manager@stockyard.demo    Manager@1234
 
 ## Problem
 Shops that sell construction and hardware materials usually record their orders, sales and stock by hand on paper. Because of this, they have no reliable stock count, no sales history to analyze, and no clear picture of how sales are performing. When I visited my uncle’s construction shop in our local market, he could not say exactly how much stock he had. He didn’t know when to restock, which products to buy or in what quantity, and he had no way to estimate upcoming sales. StockYard records orders and stock digitally and uses past sales to forecast demand, giving the owner an approximate idea of upcoming sales and a list of products to restock.
