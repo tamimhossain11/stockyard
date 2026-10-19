@@ -3,7 +3,8 @@
 StockYard is a web app for small construction-material shops in Bangladesh to record orders and stock, and to see which products need restocking based on past sales.
 Built for the NT Tech Innovation Full Stack Developer assessment (October 2026).
 
-**Live demo:** <frontend link> · API health check: https://stockyard-h1q6.onrender.com/api/health
+**Live demo:**    https://stockyard-lake.vercel.app/
+API health check: https://stockyard-h1q6.onrender.com/api/health
 
 **Demo logins:**
 
@@ -29,7 +30,10 @@ Shops that sell construction and hardware materials usually record their orders,
 - **Database:** PostgreSQL with Prisma. The schema is in one file, migrations are generated from it, and queries are type-checked against it.
 - **Auth:** bcryptjs for password hashes and JSON Web Tokens (jsonwebtoken) for logins.
 - **Validation:** zod schemas on every request body and parameter.
-- **Tests:** Node's built-in test runner (`node --test`), so no extra test library is needed.
+- **Tests:** Node's built-in test runner run ## npm test ## for testing the total server test.
+ expect result:
+
+
 
 ## Architecture
 ```
@@ -39,11 +43,93 @@ React (Render static site) ──HTTPS + Bearer token──▶ Express API (Rend
 - **Login is checked** by the `requireAuth` middleware. It verifies the token and puts `{ id, role }` on `req.user`. Every route except login and health uses it.
 - **Roles are checked** by `requireRole("ADMIN", ...)` on routes with a role rule, such as changing a price. The client hides buttons the user can't use, but the server is what enforces it.
 - Business rules live in plain functions in `server/src/lib/`: the order status moves and the forecast maths. That keeps them testable without a database.
+![Test Result](docs/image.png)
 
 ## Database design
-<your table list, plus the photo of your sketch>
 
-Key decisions:
+PostgreSQL, managed with Prisma (`server/prisma/schema.prisma`). There are 4 tables and 2 enums.
+
+### ER diagram
+
+![StockYard ER diagram](docs/database-erd.png)
+
+### Relational schema
+
+Arrows go from each foreign key to the primary key it references.
+
+![StockYard relational schema](docs/database-schema.png)
+
+### Table list
+
+| Table | What one row is | Rows link to |
+|---|---|---|
+| `users` | A shop staff account (admin or manager) | — |
+| `products` | One product variant, e.g. BSRM Rod 12mm | — |
+| `orders` | One customer order | `users` (who created it) |
+| `order_items` | One product line inside an order | `orders`, `products` |
+
+#### users
+
+| Column | Type | Key / constraint | Description |
+|---|---|---|---|
+| `id` | Int | **PK**, auto-increment | |
+| `name` | String | required | Staff member's name |
+| `email` | String | **unique**, required | Used to log in |
+| `phone` | String | optional | |
+| `passwordHash` | String | required | bcrypt hash, never the password itself |
+| `role` | `Role` enum | required | `ADMIN` or `MANAGER` |
+| `active` | Boolean | default `true` | An inactive user can't log in |
+
+#### products
+
+| Column | Type | Key / constraint | Description |
+|---|---|---|---|
+| `id` | Int | **PK**, auto-increment | |
+| `title` | String | required, **unique with `variant`** | e.g. BSRM Rod |
+| `variant` | String | required, **unique with `title`** | e.g. 12mm |
+| `unit` | String | required | bag, ton, cft or piece |
+| `price` | Decimal(12, 2) | required | Current price per unit, in BDT |
+| `stock` | Decimal(12, 3) | required | Quantity in stock, in `unit` |
+| `active` | Boolean | default `true` | Archiving a product sets it to `false` |
+
+#### orders
+
+| Column | Type | Key / constraint | Description |
+|---|---|---|---|
+| `id` | Int | **PK**, auto-increment | |
+| `customerName` | String | required | |
+| `customerPhone` | String | required | |
+| `status` | `OrderStatus` enum | default `PENDING` | `PENDING`, `CONFIRMED`, `DELIVERED` or `CANCELLED` |
+| `createdAt` | DateTime | default `now()` | Time of the order |
+| `createdById` | Int | **FK → `users.id`** | Staff member who created the order |
+| `total` | Decimal(12, 2) | required | Calculated by the server from the items |
+
+#### order_items
+
+| Column | Type | Key / constraint | Description |
+|---|---|---|---|
+| `id` | Int | **PK**, auto-increment | |
+| `orderId` | Int | **FK → `orders.id`** | The order this line belongs to |
+| `productId` | Int | **FK → `products.id`** | The product sold |
+| `quantity` | Decimal(12, 3) | required | Amount sold, in the product's unit |
+| `unitPrice` | Decimal(12, 2) | required | Price at the time of sale |
+
+### Relationships
+
+| Relationship | Type | Foreign key |
+|---|---|---|
+| A user creates zero or more orders; each order has exactly one creator | One-to-many | `orders.createdById` → `users.id` |
+| An order contains one or more items; each item belongs to exactly one order | One-to-many | `order_items.orderId` → `orders.id` |
+| A product appears in zero or more items; each item is for exactly one product | One-to-many | `order_items.productId` → `products.id` |
+
+### Enums
+
+| Enum | Values |
+|---|---|
+| `Role` | `ADMIN`, `MANAGER` |
+| `OrderStatus` | `PENDING`, `CONFIRMED`, `DELIVERED`, `CANCELLED` |
+
+### Key decisions
 - One users table with roles: <why>
 - Order items store the price at the time of sale: <why>
 - Products are archived, not deleted: <why>
