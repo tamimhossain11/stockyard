@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.js";
 import productRoutes from "./routes/products.js";
+import orderRoutes from "./routes/orders.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 // The app is built here and started in index.js, so tests can import it
@@ -15,6 +16,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/orders", orderRoutes);
 
 // Open this in a browser to check a deploy: it also confirms the database answers.
 app.get("/api/health", async (req, res) => {
