@@ -1,4 +1,3 @@
-// One component for the three request states, so every page shows them the same way.
 
 export function Loading({ text = "Loading…" }) {
   return (

@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, loadSession, saveSession, setUnauthorizedHandler } from "./api.js";
 import LoginPage from "./pages/LoginPage.jsx";
+import ProductsPage from "./pages/ProductsPage.jsx";
+import NewOrderPage from "./pages/NewOrderPage.jsx";
+import OrdersPage from "./pages/OrdersPage.jsx";
+import ForecastPage from "./pages/ForecastPage.jsx";
 
 
-// Products, orders and forecast pages are added here as they are built.
-const PAGES = {};
+const PAGES = {
+  products: { label: "Products", component: ProductsPage },
+  "new-order": { label: "New order", component: NewOrderPage },
+  orders: { label: "Orders", component: OrdersPage },
+  forecast: { label: "Forecast", component: ForecastPage },
+};
 
 function pageFromHash() {
   const name = window.location.hash.replace(/^#\/?/, "");
@@ -46,7 +54,7 @@ export default function App() {
 
   if (!session) return <LoginPage onLogin={handleLogin} notice={loginNotice} />;
 
-  const Page = PAGES[page]?.component;
+  const Page = PAGES[page].component;
 
   return (
     <div className="app">
@@ -67,7 +75,7 @@ export default function App() {
         </span>
       </header>
       <main>
-        {Page ? <Page session={session} /> : <p className="muted">You're logged in. More pages are on the way.</p>}
+        <Page session={session} />
       </main>
     </div>
   );
