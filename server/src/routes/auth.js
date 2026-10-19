@@ -3,6 +3,7 @@ import {z} from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../db.js";
+import { requireAuth } from "../middleware/requireAuth.js";
 
 const router = express.Router();
 
@@ -35,6 +36,10 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
   res.json({ token, name: user.name, role: user.role });
+});
+
+router.get("/me", requireAuth, (req, res) => {
+  res.json(req.user);
 });
 
 export default router;
